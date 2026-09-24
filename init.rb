@@ -5,13 +5,15 @@ require File.dirname(__FILE__) + '/lib/redmine_latex_mathjax/hooks/view_layouts_
 Redmine::Plugin.register :redmine_latex_mathjax do
   name 'Redmine LaTeX MathJax Macro'
   author 'RVD, 5inf'
-  description 'Employ MathJax in all settings: wiki, issues, or every page.'
+  description 'Employ MathJax in wiki, issues, and previews. Redmine 7 / Propshaft compatible.'
   url 'https://github.com/5inf/redmine_latex_mathjax'
   author_url 'https://github.com/5inf'
-  version '0.4.0'
+  version '0.4.0-redmine7'
+
+  requires_redmine :version_or_higher => '7.0.0'
 
   settings :default => {
-    'latex_mathjax_url' => Redmine::VERSION::MAJOR < 6 ? '/plugin_assets/redmine_latex_mathjax/mathjax/es5/tex-chtml.js' : 'plugin_assets/redmine_latex_mathjax/es5/tex-chtml-redmine6.js',
+    'latex_mathjax_url' => 'plugin_assets/redmine_latex_mathjax/es5/tex-chtml-propshaft.js',
     'latex_mathjax_inline_delimiter_start' => '$',
     'latex_mathjax_inline_delimiter_end' => '$',
     'latex_mathjax_block_delimiter_start' => '$$',
