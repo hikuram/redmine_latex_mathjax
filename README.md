@@ -65,3 +65,11 @@ Notes
 -----
 
 MathJax output is client-side and is therefore not automatically included in Redmine PDF exports.
+
+Third-party license
+-------------------
+
+This plugin bundles MathJax 3.0.5 under the Apache License 2.0. The complete
+MathJax license text is retained at `assets/mathjax/LICENSE`. See
+`THIRD_PARTY_LICENSES.md` for the bundled version and the Propshaft-specific
+modification notice.
