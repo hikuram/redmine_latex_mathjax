@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_dependency 'redmine/wiki_formatting/common_mark/markdown_filter'
-require_dependency 'redmine/wiki_formatting/common_mark/sanitization_filter'
-require_dependency 'redmine/wiki_formatting/common_mark/formatter'
+#require_dependency 'redmine/wiki_formatting/common_mark/markdown_filter'
+#require_dependency 'redmine/wiki_formatting/common_mark/sanitization_filter'
+#require_dependency 'redmine/wiki_formatting/common_mark/formatter'
 
 module RedmineLatexMathjax
   module CommonMarkMathDollarsPatch
