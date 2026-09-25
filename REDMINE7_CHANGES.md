@@ -1,45 +1,48 @@
 Redmine 7 adaptation notes
 ==========================
 
-Base
-----
+Version 0.4.1
+-------------
 
-This package was adapted from the supplied `redmine6` branch/archive.
-The goal was to keep the existing Propshaft/MathJax font-path fix while removing obsolete
-preview integration that no longer matches Redmine 7.
+This version is based on the Redmine 7 / Propshaft adaptation that already bundled
+MathJax 3.0.5 with its Apache-2.0 license and the Propshaft font-path patch.
 
-Changes
--------
+The Redmine 7-specific math changes are intentionally narrow:
 
-1. Require Redmine 7.0 or later.
-2. Rename the Propshaft-patched MathJax bundle from:
+1. Keep the existing MathJax path unchanged for pages that do not pass through
+   Redmine CommonMark formatting (for example, the activity view). Raw `$...$`
+   and `$$...$$` remain valid MathJax delimiters.
+2. Enable CommonMarker's native `math_dollars` extension only in Redmine's
+   CommonMark formatter. CommonMarker therefore recognizes `$...$` and
+   `$$...$$` before Markdown escaping can alter TeX sequences such as `\,`.
+3. Preserve CommonMarker's semantic `data-math-style="inline|display"` attribute
+   by adding only that attribute to the already-instantiated Redmine CommonMark
+   sanitizer allowlist for `span` elements.
+4. Immediately before MathJax performs its initial page typeset, convert those
+   semantic CommonMarker math spans back to the configured inline/block MathJax
+   delimiters. Pages without those spans are left untouched.
+5. Keep both configured delimiters and MathJax's `\(...\)` / `\[...\]`
+   delimiters enabled.
+6. Do not patch `ApplicationHelper#textilizable`, do not rewrite already-rendered
+   escape spans, and do not replace Redmine preview templates.
+7. Log the effective CommonMarker and sanitizer state at startup. A healthy load
+   reports:
 
-       tex-chtml-redmine6.js
+       [redmine_latex_mathjax] CommonMark math_dollars=true; sanitizer data-math-style=true
 
-   to:
+Other retained Redmine 7 changes
+--------------------------------
 
-       tex-chtml-propshaft.js
+- Redmine 7.0+ is required.
+- The Propshaft-patched MathJax bundle is named `tex-chtml-propshaft.js`.
+- `RAILS_ASSET_URL()` references are retained for MathJax WOFF font assets.
+- Obsolete MathJax 2-style URL query parameters are not used.
+- No database migration or additional Gem dependency is introduced.
+- `MathJaxEmbedMacro.delimiterEndBlock` now reads the configured block end
+  delimiter rather than the block start delimiter.
 
-   No vendor-code logic was otherwise changed in that bundle.
-3. Keep `RAILS_ASSET_URL()` references for MathJax WOFF font assets.
-4. Remove the plugin override of `app/views/common/_preview.html.erb`.
-   Redmine 7's core preview partial is now used unchanged.
-5. Remove the obsolete `MJsubmitPreview()` implementation and DOM rewriting of
-   `onclick="submitPreview(...)"` links.
-6. Add a Redmine 7 preview hook based on the current `.tab-preview` / `.wiki-preview`
-   AJAX flow:
-   - clear the old preview from MathJax's internal document before replacement;
-   - observe the preview container for Redmine's AJAX content replacement;
-   - run `MathJax.typesetPromise([preview])` after the replacement;
-   - fall back to `MathJax.typeset([preview])` if needed.
-7. Remove obsolete MathJax 2-style query parameters from the MathJax script URL.
-8. Update README instructions for Redmine 7. No `bundle install --without ...` step is required
-   by this plugin because it adds no Gem dependencies.
+Third-party software
+--------------------
 
-Intentionally unchanged
------------------------
-
-- Bundled MathJax version remains 3.0.5.
-- The `mj` macro behavior is unchanged.
-- Math delimiters remain configurable in the plugin settings.
-- No database migration was added.
+Bundled MathJax remains version 3.0.5. Its Apache License 2.0 text is retained at
+`assets/mathjax/LICENSE`; see `THIRD_PARTY_LICENSES.md` for the modification notice.

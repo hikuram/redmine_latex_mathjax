@@ -4,71 +4,52 @@ module RedmineLatexMathjax
       def view_layouts_base_html_head(context={})
         inline_start = MathJaxEmbedMacro.delimiterStartInline.to_s.to_json
         inline_end = MathJaxEmbedMacro.delimiterEndInline.to_s.to_json
+        block_start = MathJaxEmbedMacro.delimiterStartBlock.to_s.to_json
+        block_end = MathJaxEmbedMacro.delimiterEndBlock.to_s.to_json
 
         mathjax_config = <<~JAVASCRIPT
           <script type="text/javascript">
-            window.MathJax = {
-              tex: {
-                inlineMath: [
-                  [#{inline_start}, #{inline_end}],
-                  ['\\\\(', '\\\\)']
-                ]
-              }
-            };
-          </script>
-        JAVASCRIPT
+            (function() {
+              var inlineStart = #{inline_start};
+              var inlineEnd = #{inline_end};
+              var blockStart = #{block_start};
+              var blockEnd = #{block_end};
 
-        # Redmine 7 loads previews asynchronously into .wiki-preview.
-        # Observe that container rather than replacing Redmine's preview partial
-        # or monkey-patching the removed submitPreview() function.
-        preview_hook = <<~JAVASCRIPT
-          <script type="text/javascript">
-            document.addEventListener('click', function(event) {
-              var target = event.target;
-              if (!(target instanceof Element)) return;
+              function restoreCommonMarkerMath() {
+                document.querySelectorAll('span[data-math-style]').forEach(function(node) {
+                  var style = node.getAttribute('data-math-style');
+                  if (style !== 'inline' && style !== 'display') return;
 
-              var tab = target.closest('div.jstTabs a.tab-preview');
-              if (!tab) return;
-
-              var block = tab.closest('.jstBlock');
-              var preview = block ? block.querySelector('.wiki-preview') : null;
-              if (!preview || typeof MutationObserver === 'undefined') return;
-
-              // Clear MathJax's record of the old preview before Redmine
-              // replaces its contents via AJAX.
-              if (window.MathJax && typeof MathJax.typesetClear === 'function') {
-                MathJax.typesetClear([preview]);
+                  var open = style === 'display' ? blockStart : inlineStart;
+                  var close = style === 'display' ? blockEnd : inlineEnd;
+                  node.replaceWith(document.createTextNode(open + node.textContent + close));
+                });
               }
 
-              // A new click supersedes any still-pending preview observation.
-              if (preview._redmineMathJaxObserver) {
-                preview._redmineMathJaxObserver.disconnect();
-              }
-
-              var observer = new MutationObserver(function() {
-                observer.disconnect();
-                preview._redmineMathJaxObserver = null;
-
-                if (!window.MathJax) return;
-
-                if (typeof MathJax.typesetPromise === 'function') {
-                  MathJax.typesetPromise([preview]).catch(function(error) {
-                    console.error('MathJax preview typesetting failed:', error);
-                  });
-                } else if (typeof MathJax.typeset === 'function') {
-                  MathJax.typeset([preview]);
+              window.MathJax = {
+                tex: {
+                  inlineMath: [
+                    [inlineStart, inlineEnd],
+                    ['\\\\(', '\\\\)']
+                  ],
+                  displayMath: [
+                    [blockStart, blockEnd],
+                    ['\\\\[', '\\\\]']
+                  ]
+                },
+                startup: {
+                  pageReady: function() {
+                    restoreCommonMarkerMath();
+                    return MathJax.startup.defaultPageReady();
+                  }
                 }
-              });
-
-              preview._redmineMathJaxObserver = observer;
-              observer.observe(preview, {childList: true});
-            });
+              };
+            })();
           </script>
         JAVASCRIPT
 
         (mathjax_config +
-          javascript_include_tag(MathJaxEmbedMacro.URLToMathJax) + "\n" +
-          preview_hook).html_safe
+          javascript_include_tag(MathJaxEmbedMacro.URLToMathJax) + "\n").html_safe
       end
     end
   end

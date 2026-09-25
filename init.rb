@@ -1,6 +1,7 @@
 require 'redmine'
 ::Rails.logger.info 'Redmine LaTeX MathJax Macro'
 require File.dirname(__FILE__) + '/lib/redmine_latex_mathjax/hooks/view_layouts_base_html_head_hook'
+require File.dirname(__FILE__) + '/lib/redmine_latex_mathjax/common_mark_math_patch'
 
 Redmine::Plugin.register :redmine_latex_mathjax do
   name 'Redmine LaTeX MathJax Macro'
@@ -8,7 +9,7 @@ Redmine::Plugin.register :redmine_latex_mathjax do
   description 'Employ MathJax in wiki, issues, and previews. Redmine 7 / Propshaft compatible.'
   url 'https://github.com/5inf/redmine_latex_mathjax'
   author_url 'https://github.com/5inf'
-  version '0.4.0-redmine7'
+  version '0.4.1'
 
   requires_redmine :version_or_higher => '7.0.0'
 
@@ -72,7 +73,7 @@ class MathJaxEmbedMacro
   end
 
   def self.delimiterEndBlock()
-	  return Setting.plugin_redmine_latex_mathjax['latex_mathjax_block_delimiter_start'] || ""
+	  return Setting.plugin_redmine_latex_mathjax['latex_mathjax_block_delimiter_end'] || ""
   end
 
   def self.URLToMathJax()
